@@ -1,0 +1,1002 @@
+steps:
+  "1":
+    outputs: {}
+    inputs: {}
+    stepCounter: 1
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF1
+      table: CUSTOMER
+  "2":
+    outputs: {}
+    inputs: {}
+    stepCounter: 2
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF1
+      table: ORDERS
+  "3":
+    outputs: {}
+    inputs: {}
+    stepCounter: 3
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF1
+      table: NATION
+  "4":
+    outputs: {}
+    inputs: {}
+    stepCounter: 4
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: STITCH_DB
+      type: sourceInput
+      dataset: COVID_PUBLIC_DATA
+      table: NYTIMES_US_COUNTIES
+  "5":
+    outputs: {}
+    inputs: {}
+    stepCounter: 5
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF1
+      table: CUSTOMER
+  "6":
+    outputs: {}
+    inputs: {}
+    stepCounter: 6
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_DIM_CUSTOMERS_WITH_NATION
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          NATION.N_NATIONKEY AS N_NATIONKEY,
+          NATION.N_NAME AS N_NAME,
+          NATION.N_REGIONKEY AS N_REGIONKEY,
+          NATION.N_COMMENT AS N_COMMENT,
+          CUSTOMER.C_CUSTKEY AS C_CUSTKEY,
+          CUSTOMER.C_NAME AS C_NAME,
+          CUSTOMER.C_ADDRESS AS C_ADDRESS,
+          CUSTOMER.C_NATIONKEY AS C_NATIONKEY,
+          CUSTOMER.C_PHONE AS C_PHONE,
+          CUSTOMER.C_ACCTBAL AS C_ACCTBAL,
+          CUSTOMER.C_MKTSEGMENT AS C_MKTSEGMENT,
+          CUSTOMER.C_COMMENT AS C_COMMENT
+        FROM
+          ${CUSTOMER} AS CUSTOMER
+          INNER JOIN ${NATION} AS NATION ON CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY
+  "7":
+    outputs: {}
+    inputs: {}
+    stepCounter: 7
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_CUSTOMERS
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          C_CUSTKEY AS C_CUSTKEY,
+          LTRIM(SUBSTRING(C_NAME,10), '0') AS C_NAME,
+          C_ADDRESS AS C_ADDRESS,
+          C_NATIONKEY AS C_NATIONKEY,
+          C_PHONE AS C_PHONE,
+          C_ACCTBAL AS C_ACCTBAL,
+          C_MKTSEGMENT AS C_MKTSEGMENT,
+          C_COMMENT AS C_COMMENT
+        FROM
+          ${CUSTOMER}
+  "8":
+    outputs: {}
+    inputs: {}
+    stepCounter: 8
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_ORDERS
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          O_ORDERKEY AS O_ORDERKEY,
+          O_CUSTKEY AS O_CUSTKEY,
+          O_ORDERSTATUS AS O_ORDERSTATUS,
+          O_TOTALPRICE AS O_TOTALPRICE,
+          SPLIT(O_ORDERDATE,'-')[0] as O_ORDERYEAR,
+          SPLIT(O_ORDERDATE,'-')[1] as O_ORDERMONTH,
+          SPLIT(O_ORDERDATE,'-')[2] as O_ORDERDAY,
+          SPLIT(O_ORDERPRIORITY,'-')[1] as PRIORITY,
+          LTRIM(SUBSTRING(O_CLERK, 7), '0') as ClerkNumber,
+          O_SHIPPRIORITY AS O_SHIPPRIORITY,
+          O_COMMENT AS O_COMMENT
+        FROM
+          ${ORDERS}
+  "9":
+    outputs: {}
+    inputs: {}
+    stepCounter: 9
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: AVG_ACCT_BALANCE_BY_MARKET
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          AVG(C_ACCTBAL) AS C_ACCTBAL,
+          C_MKTSEGMENT
+        FROM
+          ${STG_CUSTOMERS}
+        GROUP BY
+          C_MKTSEGMENT
+  "10":
+    outputs: {}
+    inputs: {}
+    stepCounter: 10
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: AVG_ACCT_BALANCE_BY_NATION
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          N_NAME AS N_NAME,
+          AVG(C_ACCTBAL) AS C_ACCTBAL
+        FROM
+          ${STG_DIM_CUSTOMERS_WITH_NATION}
+          GROUP BY N_NAME
+  "11":
+    outputs: {}
+    inputs: {}
+    stepCounter: 11
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: ORDERS_BY_MONTH
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          SUM(O_TOTALPRICE) AS O_TOTALPRICE,
+          O_ORDERYEAR AS O_ORDERYEAR,
+          O_ORDERMONTH AS O_ORDERMONTH
+        FROM
+          ${STG_ORDERS}
+          GROUP BY O_ORDERYEAR, O_ORDERMONTH
+  "12":
+    outputs: {}
+    inputs: {}
+    stepCounter: 12
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCDS_SF100TCL
+      table: CALL_CENTER
+  "13":
+    outputs: {}
+    inputs: {}
+    stepCounter: 13
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_CALL_CENTER
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          CC_CALL_CENTER_SK AS CC_CALL_CENTER_SK,
+          CC_CALL_CENTER_ID AS CC_CALL_CENTER_ID,
+          CC_REC_START_DATE AS CC_REC_START_DATE,
+          CC_REC_END_DATE AS CC_REC_END_DATE,
+          CC_CLOSED_DATE_SK AS CC_CLOSED_DATE_SK,
+          CC_OPEN_DATE_SK AS CC_OPEN_DATE_SK,
+          CC_NAME AS CC_NAME,
+          CC_CLASS AS CC_CLASS,
+          CC_EMPLOYEES AS CC_EMPLOYEES,
+          CC_SQ_FT AS CC_SQ_FT,
+          CC_HOURS AS CC_HOURS,
+          CC_MANAGER AS CC_MANAGER,
+          CC_MKT_ID AS CC_MKT_ID,
+          CC_MKT_CLASS AS CC_MKT_CLASS,
+          CC_MKT_DESC AS CC_MKT_DESC,
+          CC_MARKET_MANAGER AS CC_MARKET_MANAGER,
+          CC_DIVISION AS CC_DIVISION,
+          CC_DIVISION_NAME AS CC_DIVISION_NAME,
+          CC_COMPANY AS CC_COMPANY,
+          CC_COMPANY_NAME AS CC_COMPANY_NAME,
+          CC_STREET_NUMBER AS CC_STREET_NUMBER,
+          CC_STREET_NAME AS CC_STREET_NAME,
+          CC_STREET_TYPE AS CC_STREET_TYPE,
+          CC_SUITE_NUMBER AS CC_SUITE_NUMBER,
+          CC_CITY AS CC_CITY,
+          CC_COUNTY AS CC_COUNTY,
+          CC_STATE AS CC_STATE,
+          CC_ZIP AS CC_ZIP,
+          CC_COUNTRY AS CC_COUNTRY,
+          CC_GMT_OFFSET AS CC_GMT_OFFSET,
+          CC_TAX_PERCENTAGE AS CC_TAX_PERCENTAGE
+        FROM
+          ${CALL_CENTER}
+  "14":
+    outputs: {}
+    inputs: {}
+    stepCounter: 14
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCDS_SF100TCL
+      table: STORE
+  "15":
+    outputs: {}
+    inputs: {}
+    stepCounter: 15
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_STORE
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          S_STORE_SK AS S_STORE_SK,
+          S_STORE_ID AS S_STORE_ID,
+          S_REC_START_DATE AS S_REC_START_DATE,
+          S_REC_END_DATE AS S_REC_END_DATE,
+          S_CLOSED_DATE_SK AS S_CLOSED_DATE_SK,
+          S_STORE_NAME AS S_STORE_NAME,
+          S_NUMBER_EMPLOYEES AS S_NUMBER_EMPLOYEES,
+          S_FLOOR_SPACE AS S_FLOOR_SPACE,
+          S_HOURS AS S_HOURS,
+          SPLIT(S_HOURS, '-')[0] as OpenTime, 
+          SPLIT(S_HOURS, '-')[1] as CloseTime, 
+          S_MANAGER AS S_MANAGER,
+          S_MARKET_ID AS S_MARKET_ID,
+          S_MARKET_DESC AS S_MARKET_DESC,
+          S_MARKET_MANAGER AS S_MARKET_MANAGER,
+          S_DIVISION_ID AS S_DIVISION_ID,
+          S_DIVISION_NAME AS S_DIVISION_NAME,
+          S_COMPANY_ID AS S_COMPANY_ID,
+          S_COMPANY_NAME AS S_COMPANY_NAME,
+          S_STREET_NUMBER AS S_STREET_NUMBER,
+          S_STREET_NAME AS S_STREET_NAME,
+          S_STREET_TYPE AS S_STREET_TYPE,
+          S_SUITE_NUMBER AS S_SUITE_NUMBER,
+          S_CITY AS S_CITY,
+          S_COUNTY AS S_COUNTY,
+          S_STATE AS S_STATE,
+          S_ZIP AS S_ZIP,
+          S_COUNTRY AS S_COUNTRY,
+          S_GMT_OFFSET AS S_GMT_OFFSET,
+          S_TAX_PRECENTAGE AS S_TAX_PRECENTAGE
+        FROM
+          ${STORE}
+  "16":
+    outputs: {}
+    inputs: {}
+    stepCounter: 16
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCDS_SF10TCL
+      table: WAREHOUSE
+  "17":
+    outputs: {}
+    inputs: {}
+    stepCounter: 17
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_WAREHOUSE
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          W_WAREHOUSE_SK AS W_WAREHOUSE_SK,
+          W_WAREHOUSE_ID AS W_WAREHOUSE_ID,
+          W_WAREHOUSE_NAME AS W_WAREHOUSE_NAME,
+          W_WAREHOUSE_SQ_FT AS W_WAREHOUSE_SQ_FT,
+          W_STREET_NUMBER AS W_STREET_NUMBER,
+          W_STREET_NAME AS W_STREET_NAME,
+          W_STREET_TYPE AS W_STREET_TYPE,
+          W_SUITE_NUMBER AS W_SUITE_NUMBER,
+          W_CITY AS W_CITY,
+          W_COUNTY AS W_COUNTY,
+          W_STATE AS W_STATE,
+          W_ZIP AS W_ZIP,
+          W_COUNTRY AS W_COUNTRY,
+          W_GMT_OFFSET AS W_GMT_OFFSET
+        FROM
+          ${WAREHOUSE}
+  "18":
+    outputs: {}
+    inputs: {}
+    stepCounter: 18
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCDS_SF10TCL
+      table: STORE_RETURNS
+  "19":
+    outputs: {}
+    inputs: {}
+    stepCounter: 19
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_STORE_RETURNS
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          SR_RETURNED_DATE_SK AS SR_RETURNED_DATE_SK,
+          SR_RETURN_TIME_SK AS SR_RETURN_TIME_SK,
+          SR_ITEM_SK AS SR_ITEM_SK,
+          SR_CUSTOMER_SK AS SR_CUSTOMER_SK,
+          SR_CDEMO_SK AS SR_CDEMO_SK,
+          SR_HDEMO_SK AS SR_HDEMO_SK,
+          SR_ADDR_SK AS SR_ADDR_SK,
+          SR_STORE_SK AS SR_STORE_SK,
+          SR_REASON_SK AS SR_REASON_SK,
+          SR_TICKET_NUMBER AS SR_TICKET_NUMBER,
+          SR_RETURN_QUANTITY AS SR_RETURN_QUANTITY,
+          SR_RETURN_AMT AS SR_RETURN_AMT,
+          SR_RETURN_TAX AS SR_RETURN_TAX,
+          SR_RETURN_AMT_INC_TAX AS SR_RETURN_AMT_INC_TAX,
+          SR_FEE AS SR_FEE,
+          SR_RETURN_SHIP_COST AS SR_RETURN_SHIP_COST,
+          SR_REFUNDED_CASH AS SR_REFUNDED_CASH,
+          SR_REVERSED_CHARGE AS SR_REVERSED_CHARGE,
+          SR_STORE_CREDIT AS SR_STORE_CREDIT,
+          SR_NET_LOSS AS SR_NET_LOSS
+        FROM
+          ${STORE_RETURNS}
+  "20":
+    outputs: {}
+    inputs: {}
+    stepCounter: 20
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCDS_SF100TCL
+      table: PROMOTION
+  "21":
+    outputs: {}
+    inputs: {}
+    stepCounter: 21
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_PROMOTION
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          P_PROMO_SK AS P_PROMO_SK,
+          P_PROMO_ID AS P_PROMO_ID,
+          P_START_DATE_SK AS P_START_DATE_SK,
+          P_END_DATE_SK AS P_END_DATE_SK,
+          P_END_DATE_SK - P_START_DATE_SK as PROMOTION_DURATION_DAYS,
+          P_ITEM_SK AS P_ITEM_SK,
+          P_COST AS P_COST,
+          P_RESPONSE_TARGET AS P_RESPONSE_TARGET,
+          P_PROMO_NAME AS P_PROMO_NAME,
+          P_CHANNEL_DMAIL AS P_CHANNEL_DMAIL,
+          P_CHANNEL_EMAIL AS P_CHANNEL_EMAIL,
+          P_CHANNEL_CATALOG AS P_CHANNEL_CATALOG,
+          P_CHANNEL_TV AS P_CHANNEL_TV,
+          P_CHANNEL_RADIO AS P_CHANNEL_RADIO,
+          P_CHANNEL_PRESS AS P_CHANNEL_PRESS,
+          P_CHANNEL_EVENT AS P_CHANNEL_EVENT,
+          P_CHANNEL_DEMO AS P_CHANNEL_DEMO,
+          P_CHANNEL_DETAILS AS P_CHANNEL_DETAILS,
+          P_PURPOSE AS P_PURPOSE,
+          P_DISCOUNT_ACTIVE AS P_DISCOUNT_ACTIVE
+        FROM
+          ${PROMOTION}
+  "22":
+    outputs: {}
+    inputs: {}
+    stepCounter: 22
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCDS_SF100TCL
+      table: ITEM
+  "23":
+    outputs: {}
+    inputs: {}
+    stepCounter: 23
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: CALL_CENTERS_PER_MANAGER
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          COUNT(CC_CALL_CENTER_SK) AS CC_CALL_CENTER_SK,
+          CC_MANAGER AS CC_MANAGER
+        FROM
+          ${STG_CALL_CENTER}
+          GROUP BY CC_MANAGER
+  "24":
+    outputs: {}
+    inputs: {}
+    stepCounter: 24
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: PHYSICAL_FOOTPRINTS
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          COUNT (DISTINCT STG_CALL_CENTER.CC_CALL_CENTER_SK) AS NUM_CALL_CENTERS,
+          COUNT (DISTINCT STG_STORE.S_STORE_SK) AS NUM_STORES,
+          COUNT (DISTINCT STG_WAREHOUSE.W_WAREHOUSE_SK) AS NUM_WAREHOUSES,
+          CC_STATE
+        FROM
+          ${STG_CALL_CENTER} AS STG_CALL_CENTER
+          INNER JOIN ${STG_STORE} AS STG_STORE ON STG_CALL_CENTER.CC_STATE = STG_STORE.S_STATE
+          INNER JOIN ${STG_WAREHOUSE} AS STG_WAREHOUSE ON STG_STORE.S_STATE = W_STATE
+        GROUP BY
+          CC_STATE
+  "25":
+    outputs: {}
+    inputs: {}
+    stepCounter: 25
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF001
+      table: SUPPLIER
+  "26":
+    outputs: {}
+    inputs: {}
+    stepCounter: 26
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF001
+      table: PARTSUPP
+  "27":
+    outputs: {}
+    inputs: {}
+    stepCounter: 27
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_SUPPLIER
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          S_SUPPKEY AS SupplierID,
+          S_NAME AS S_NAME,
+          S_ADDRESS AS S_ADDRESS,
+          S_NATIONKEY AS S_NATIONKEY,
+          S_PHONE AS S_PHONE,
+          S_ACCTBAL AS S_ACCTBAL,
+          S_COMMENT AS S_COMMENT
+        FROM
+          ${SUPPLIER}
+  "28":
+    outputs: {}
+    inputs: {}
+    stepCounter: 28
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_PARTSUPP
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          PS_PARTKEY AS PS_PARTKEY,
+          PS_SUPPKEY AS PS_SUPPKEY,
+          PS_AVAILQTY AS PS_AVAILQTY,
+          PS_SUPPLYCOST AS PS_SUPPLYCOST,
+          PS_COMMENT AS PS_COMMENT
+        FROM
+          ${PARTSUPP}
+  "29":
+    outputs: {}
+    inputs: {}
+    stepCounter: 29
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: PARTS_WITH_SUPPLIER
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          STG_SUPPLIER.SUPPLIERID AS SupplierID,
+          STG_SUPPLIER.S_NAME AS S_NAME,
+          STG_SUPPLIER.S_ADDRESS AS S_ADDRESS,
+          STG_SUPPLIER.S_NATIONKEY AS S_NATIONKEY,
+          STG_SUPPLIER.S_PHONE AS S_PHONE,
+          STG_SUPPLIER.S_ACCTBAL AS S_ACCTBAL,
+          STG_SUPPLIER.S_COMMENT AS S_COMMENT,
+          STG_PARTSUPP.PS_PARTKEY AS PS_PARTKEY,
+          STG_PARTSUPP.PS_SUPPKEY AS PS_SUPPKEY,
+          STG_PARTSUPP.PS_AVAILQTY AS PS_AVAILQTY,
+          STG_PARTSUPP.PS_SUPPLYCOST AS PS_SUPPLYCOST,
+          STG_PARTSUPP.PS_COMMENT AS PS_COMMENT
+        FROM
+          ${STG_PARTSUPP} AS STG_PARTSUPP
+          INNER JOIN ${STG_SUPPLIER} AS STG_SUPPLIER ON STG_PARTSUPP.PS_SUPPKEY = STG_SUPPLIER.SupplierID
+  "30":
+    outputs: {}
+    inputs: {}
+    stepCounter: 30
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: HIGHEST_COST_PARTS
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          ROW_NUMBER() OVER (
+            order by
+              PS_SUPPLYCOST desc
+          ) AS SupplyCostRank,
+          PS_SUPPLYCOST as SupplyCost,
+          SUPPLIERID,
+          S_PHONE,
+          S_NAME
+        FROM
+          ${PARTS_WITH_SUPPLIER}
+  "31":
+    outputs: {}
+    inputs: {}
+    stepCounter: 31
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: LOW_QUANTITY_ITEMS
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          SUPPLIERID AS SUPPLIERID,
+          S_NAME AS S_NAME,
+          S_PHONE AS S_PHONE,
+          S_ACCTBAL AS S_ACCTBAL,
+          S_COMMENT AS S_COMMENT,
+          PS_PARTKEY AS PS_PARTKEY,
+          PS_AVAILQTY AS Part_Quantity,
+          ROW_NUMBER() over (order by PS_AVAILQTY asc ) AS PART_QUANTITY_RANK_RANK
+        FROM
+          ${PARTS_WITH_SUPPLIER}
+  "32":
+    outputs: {}
+    inputs: {}
+    stepCounter: 32
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: CHEAPEST_SUPPLIER_FOR_PART
+      sqlType: View
+      type: sql
+      sql: |-
+        WITH RANKED_SUPPLIERS_BY_PART_COST AS (
+          SELECT
+            ROW_NUMBER() OVER (
+              PARTITION BY PS_PARTKEY
+              order by
+                PS_SUPPLYCOST ASC
+            ) AS SupplyCostRank,
+            PS_SUPPLYCOST,
+            SUPPLIERID,
+            S_PHONE,
+            S_NAME,
+            PS_PARTKEY,
+            PS_COMMENT
+          FROM
+            ${PARTS_WITH_SUPPLIER}
+        )
+        SELECT
+          PS_PARTKEY,
+          PS_COMMENT,
+          PS_SUPPLYCOST,
+          SUPPLIERID,
+          S_PHONE,
+          S_NAME
+        FROM
+          RANKED_SUPPLIERS_BY_PART_COST
+        WHERE
+          SupplyCostRank = 1
+  "33":
+    outputs: {}
+    inputs: {}
+    stepCounter: 33
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: PART_AVAILABILITY
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          PS_PARTKEY AS PS_PARTKEY,
+          SUM(PS_AVAILQTY) AS PS_AVAILQTY
+        FROM
+          ${PARTS_WITH_SUPPLIER}
+          GROUP BY PS_PARTKEY ORDER BY PS_AVAILQTY ASC
+  "34":
+    outputs: {}
+    inputs: {}
+    stepCounter: 34
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: SUPPLIERS_FOR_LOW_AVAILABILITY
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          PARTS_WITH_SUPPLIER.SUPPLIERID AS SUPPLIERID,
+          PARTS_WITH_SUPPLIER.S_NAME AS S_NAME,
+          PARTS_WITH_SUPPLIER.S_ADDRESS AS S_ADDRESS,
+          PARTS_WITH_SUPPLIER.S_NATIONKEY AS S_NATIONKEY,
+          PARTS_WITH_SUPPLIER.S_PHONE AS S_PHONE,
+          PARTS_WITH_SUPPLIER.S_ACCTBAL AS S_ACCTBAL,
+          PARTS_WITH_SUPPLIER.S_COMMENT AS S_COMMENT,
+          PARTS_WITH_SUPPLIER.PS_SUPPKEY AS PS_SUPPKEY,
+          PARTS_WITH_SUPPLIER.PS_SUPPLYCOST AS PS_SUPPLYCOST,
+          PARTS_WITH_SUPPLIER.PS_COMMENT AS PS_COMMENT,
+          PART_AVAILABILITY.PS_AVAILQTY
+        FROM
+          ${PART_AVAILABILITY} AS PART_AVAILABILITY
+          INNER JOIN ${PARTS_WITH_SUPPLIER} AS PARTS_WITH_SUPPLIER ON PART_AVAILABILITY.PS_PARTKEY
+          = PARTS_WITH_SUPPLIER.PS_PARTKEY 
+          ORDER BY PS_AVAILQTY ASC
+  "35":
+    outputs: {}
+    inputs: {}
+    stepCounter: 35
+    name: ""
+    x: 0
+    y: 0
+    type: sourceInput
+    operation:
+      name: ""
+      database: SNOWFLAKE_SAMPLE_DATA
+      type: sourceInput
+      dataset: TPCH_SF001
+      table: PART
+  "36":
+    outputs: {}
+    inputs: {}
+    stepCounter: 36
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: STG_PART
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          P_PARTKEY AS P_PARTKEY,
+          P_NAME AS P_NAME,
+          SUBSTRING(P_MFGR,1) as P_MFGR,
+          SUBSTRING(P_BRAND, 7) AS P_BRAND,
+          P_TYPE AS P_TYPE,
+          P_SIZE AS P_SIZE,
+          P_CONTAINER AS P_CONTAINER,
+          P_RETAILPRICE AS P_RETAILPRICE,
+          P_COMMENT AS P_COMMENT
+        FROM
+          ${PART}
+  "37":
+    outputs: {}
+    inputs: {}
+    stepCounter: 37
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: AVERAGE_TAX_PERCENTAGE
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          AVG(CC_TAX_PERCENTAGE) AS AverageTaxPercentage
+        FROM
+          ${STG_CALL_CENTER}
+        GROUP BY
+          CC_COUNTRY
+  "38":
+    outputs: {}
+    inputs: {}
+    stepCounter: 38
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: NewAnalysis
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          *
+        FROM
+          ${ORDERS_BY_MONTH}
+  "39":
+    outputs: {}
+    inputs: {}
+    stepCounter: 39
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: Fug
+      sqlType: View
+      type: sql
+      sql: SELECT * FROM ${someTable}
+  "40":
+    outputs: {}
+    inputs: {}
+    stepCounter: 40
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: kwjelkjrwer
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          *
+        FROM
+          ${ORDERS_BY_MONTH}
+  "41":
+    outputs: {}
+    inputs: {}
+    stepCounter: 41
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: kjkjkjlkj
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          AVG_ACCT_BALANCE_BY_MARKET.*,
+          STG_PROMOTION.*
+        FROM
+          ${STG_PROMOTION} AS STG_PROMOTION
+          INNER JOIN ${AVG_ACCT_BALANCE_BY_MARKET} AS AVG_ACCT_BALANCE_BY_MARKET ON STG_PROMOTION.
+          /**/
+          = AVG_ACCT_BALANCE_BY_MARKET.
+          /**/
+  "42":
+    outputs: {}
+    inputs: {}
+    stepCounter: 42
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: lkjlkdjfsdf
+      sqlType: View
+      type: sql
+      sql: >-
+        SELECT
+          PHYSICAL_FOOTPRINTS.*,
+          PARTS_WITH_SUPPLIER.*
+        FROM
+          ${PARTS_WITH_SUPPLIER} AS PARTS_WITH_SUPPLIER
+          INNER JOIN ${PHYSICAL_FOOTPRINTS} AS PHYSICAL_FOOTPRINTS ON PARTS_WITH_SUPPLIER.
+          /**/
+          = PHYSICAL_FOOTPRINTS.
+          /**/
+  "43":
+    outputs: {}
+    inputs: {}
+    stepCounter: 43
+    name: ""
+    x: 0
+    y: 0
+    type: sql
+    operation:
+      name: lkjsdfsdf
+      sqlType: View
+      type: sql
+      sql: |-
+        SELECT
+          *
+        FROM
+          ${CHEAPEST_SUPPLIER_FOR_PART}
+treeData:
+  nodes:
+    - stepCounter: 2
+      nodes: []
+    - stepCounter: 3
+      nodes: []
+    - stepCounter: 5
+      nodes: []
+    - stepCounter: 6
+      nodes: []
+    - stepCounter: 7
+      nodes: []
+    - stepCounter: 8
+      nodes: []
+    - stepCounter: 9
+      nodes: []
+    - stepCounter: 10
+      nodes: []
+    - stepCounter: 11
+      nodes: []
+    - stepCounter: 12
+      nodes: []
+    - stepCounter: 13
+      nodes: []
+    - stepCounter: 14
+      nodes: []
+    - stepCounter: 15
+      nodes: []
+    - stepCounter: 16
+      nodes: []
+    - stepCounter: 17
+      nodes: []
+    - stepCounter: 20
+      nodes: []
+    - stepCounter: 21
+      nodes: []
+    - stepCounter: 22
+      nodes: []
+    - stepCounter: 23
+      nodes: []
+    - stepCounter: 24
+      nodes: []
+    - stepCounter: 25
+      nodes: []
+    - stepCounter: 26
+      nodes: []
+    - stepCounter: 27
+      nodes: []
+    - stepCounter: 28
+      nodes: []
+    - stepCounter: 29
+      nodes: []
+    - stepCounter: 30
+      nodes: []
+    - stepCounter: 32
+      nodes: []
+    - stepCounter: 33
+      nodes: []
+    - stepCounter: 34
+      nodes: []
+    - stepCounter: 35
+      nodes: []
+    - stepCounter: 36
+      nodes: []
+    - stepCounter: 37
+      nodes: []
